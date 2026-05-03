@@ -1,4 +1,4 @@
-import {  z } from "zod";
+import { z } from "zod";
 import { makeModel } from "../../utils";
 import { State } from "../types";
 
@@ -39,7 +39,7 @@ export async function ExecuteNode(state: State): Promise<Partial<State>> {
   const model = makeModel();
   const structured = model.withStructuredOutput(NotesSchema);
 
-  const out: Notes = await structured.invoke([
+  const out: Notes = (await structured.invoke([
     {
       role: "system",
       content: "Return only valid JSON matching the schema.",
@@ -48,15 +48,17 @@ export async function ExecuteNode(state: State): Promise<Partial<State>> {
       role: "human",
       content: createHumanPromptContent(steps),
     },
-  ]) as Notes;
+  ])) as Notes;
 
-  const count = Math.min(steps.length, out.notes.length)
-  const results = Array.from({length: count},(_, i) => ({
+  const count = Math.min(steps.length, out.notes.length);
+  const results = Array.from({ length: count }, (_, i) => ({
     step: steps[i],
-    note: out.notes[i]
-  }))
+    note: out.notes[i],
+  }));
 
   return {
-    results
-  }
+    results,
+    status: "done",
+    message: `Executed ${results.length} step(s).`,
+  };
 }
