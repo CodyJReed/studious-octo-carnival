@@ -15,8 +15,6 @@ const PlanSchema = z.object({
     .max(10),
 });
 
-type Plan = z.infer<typeof PlanSchema>;
-
 function makeModel() {
   return new ChatOllama({
     baseUrl: "https://ollama.com",
