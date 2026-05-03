@@ -1,7 +1,6 @@
-import { ChatOllama } from "@langchain/ollama";
 import { z } from "zod";
-import { env } from "../../utils/env";
 import { State } from "../types";
+import { makeModel } from "../../utils";
 
 const PlanSchema = z.object({
   steps: z
@@ -15,16 +14,7 @@ const PlanSchema = z.object({
     .max(10),
 });
 
-function makeModel() {
-  return new ChatOllama({
-    baseUrl: "https://ollama.com",
-    model: env.OLLAMA_MODEL,
-    headers: {
-      Authorization: `Bearer ${env.OLLAMA_API_KEY}`,
-    },
-    temperature: 0.2,
-  });
-}
+type Plan = z.infer<typeof PlanSchema>;
 
 const SYSTEM = [
   "You are a helpful planner.",
@@ -55,7 +45,7 @@ export async function PlanNode(state: State): Promise<Partial<State>> {
 
   const structured = model.withStructuredOutput(PlanSchema);
 
-  const plan = await structured.invoke([
+  const plan: Plan = (await structured.invoke([
     {
       role: "system",
       content: SYSTEM,
@@ -64,7 +54,7 @@ export async function PlanNode(state: State): Promise<Partial<State>> {
       role: "human",
       content: userPrompt(input),
     },
-  ]);
+  ])) as Plan;
 
   const steps = takeFirstN(plan.steps, 5);
 
