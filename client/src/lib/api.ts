@@ -28,7 +28,7 @@ export async function startAgent(input: string) {
 }
 
 export async function approveAgent(threadId: string, approve: boolean) {
-  const res = await fetch(`${BASE}/agent/approve`, {
+  const res = await fetch(`${BASE}/agent/resume`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
