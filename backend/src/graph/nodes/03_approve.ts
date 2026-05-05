@@ -41,10 +41,13 @@ export async function ApproveNode(
   if (!decision || typeof decision !== "object") {
     return {
       approved: false,
+      status: "cancelled",
     };
   }
   // Return approved state based on decision 'approval'?
   return {
     approved: !!(decision as Decision)?.approve,
+    status:
+      !!(decision as Decision)?.approve === true ? "planned" : "cancelled",
   };
 }
