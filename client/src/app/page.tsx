@@ -2,7 +2,7 @@
 
 import AgentForm from "@/components/task-agent/AgentForm";
 import RunLogs from "@/components/task-agent/RunLogs";
-import { startAgent } from "@/lib/api";
+import { approveAgent, startAgent } from "@/lib/api";
 import { FinalView, InterruptView } from "@/lib/types";
 import { useState } from "react";
 
@@ -40,6 +40,42 @@ function AgentPage() {
     }
   }
 
+  async function handleOnApprove() {
+    if (!threadId) return;
+    setLoading(true);
+    try {
+      const res = await approveAgent(threadId, true);
+      if (res.status === "error") throw new Error(res.error);
+      setInterrupt(null);
+      setFinal(res.data?.final ?? null);
+    } catch (err: any) {
+      setFinal({
+        status: "cancelled",
+        message: err?.message ?? "Failed to approve the flow.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleOnReject() {
+    if (!threadId) return;
+    setLoading(true);
+    try {
+      const res = await approveAgent(threadId, false);
+      if (res.status === "error") throw new Error(res.error);
+      setInterrupt(null);
+      setFinal(res.data?.final ?? null);
+    } catch (err: any) {
+      setFinal({
+        status: "cancelled",
+        message: err?.message ?? "Failed to reject the flow.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <main className="min-h-screen">
       <div className="max-w-5xl mx-auto space-y-6 py-8">
@@ -52,7 +88,13 @@ function AgentPage() {
           </p>
         </div>
         <AgentForm disabled={loading} onStart={handleAgentStart} />
-        <RunLogs />
+        <RunLogs
+          interrupt={interrupt}
+          final={final}
+          loading={loading}
+          onApprove={handleOnApprove}
+          onReject={handleOnReject}
+        />
       </div>
     </main>
   );
